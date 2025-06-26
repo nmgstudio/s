@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NMG Studio | Music Can Change the World</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Navbar -->
+    <div class="navbar">
+      <img src="media/logo.png" class="logo" alt="NMG Studio Logo">
+      <ul>
+        <li><a href="#">HOME</a></li>
+        <li><a href="#">ABOUT</a></li>
+        <li><a href="#">WORKS</a></li>
+        <li><a href="#">CONTACT</a></li>
+      </ul>
+    </div>
+
+    <!-- Main Play Area -->
+    <div class="main">
+      <div class="play-button" id="playButton">
+        <img src="media/play.png" alt="Play" id="mainPlayIcon">
+      </div>
+    </div>
+
+    <!-- Hidden Player Area -->
+    <div class="player-container" id="playerContainer">
+      <div class="left-panel">
+        <img src="media/thumbnail1.png" class="song-thumbnail" id="songThumbnail" alt="Song Thumbnail">
+        <h2 id="songTitle">Shaheed</h2>
+      </div>
+      <div class="right-panel">
+        <ul class="playlist" id="playlist">
+          <li onclick="playSong('Shaheed', 'media/song.mp3', 'media/thumbnail1.png')">Shaheed</li>
+          <!-- Add more songs here -->
+        </ul>
+
+        <div class="controls">
+          <button onclick="prevSong()">⏮️</button>
+          <button onclick="togglePlay()" id="controlIcon">⏯️</button>
+          <button onclick="nextSong()">⏭️</button>
+          <button onclick="repeatSong()">🔁</button>
+        </div>
+      </div>
+    </div>
+
+    <audio id="audioPlayer" src="media/song.mp3"></audio>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
