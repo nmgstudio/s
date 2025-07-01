@@ -13,7 +13,6 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom styles for better aesthetics */
         .form-container {
             background-color: #ffffff;
             border-radius: 12px;
@@ -68,7 +67,7 @@
             <p class="text-gray-500 mt-2">कृपया लेटर जनरेट करने के लिए नीचे दिया गया फॉर्म भरें।</p>
         </div>
 
-        <form id="registrationForm">
+        <form id="registrationForm" autocomplete="off">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Name -->
                 <div class="mb-4">
@@ -110,7 +109,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Submit Button -->
             <div class="mt-8 text-center">
                 <button type="submit" id="submitBtn" class="submit-btn inline-flex items-center justify-center">
@@ -122,229 +120,236 @@
     </div>
 
     <script>
-        // --- PDF Generation Script ---
-        const { jsPDF } = window.jspdf;
+        // jsPDF को window से लोड करें
+        window.onload = function() {
+            const { jsPDF } = window.jspdf;
 
-        const registrationForm = document.getElementById('registrationForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        const loader = document.getElementById('loader');
+            const registrationForm = document.getElementById('registrationForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const loader = document.getElementById('loader');
 
-        registrationForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            btnText.textContent = 'प्रोसेसिंग...';
-            loader.classList.remove('hidden');
-            submitBtn.disabled = true;
+            registrationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                btnText.textContent = 'प्रोसेसिंग...';
+                loader.classList.remove('hidden');
+                submitBtn.disabled = true;
 
-            const name = document.getElementById('name').value;
-            const fatherName = document.getElementById('fatherName').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const reportingDateRaw = document.getElementById('reportingDate').value;
-            const accommodation = document.querySelector('input[name="accommodation"]:checked').value;
+                const name = document.getElementById('name').value;
+                const fatherName = document.getElementById('fatherName').value;
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+                const reportingDateRaw = document.getElementById('reportingDate').value;
+                const accommodation = document.querySelector('input[name="accommodation"]:checked').value;
 
-            const dateParts = reportingDateRaw.split('-');
-            const reportingDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                // यदि रिपोर्टिंग डेट नहीं है तो
+                if (!reportingDateRaw) {
+                    alert("कृपया रिपोर्टिंग की तारीख भरें।");
+                    btnText.textContent = 'लेटर जनरेट और डाउनलोड करें';
+                    loader.classList.add('hidden');
+                    submitBtn.disabled = false;
+                    return;
+                }
 
-            setTimeout(() => {
-                generatePDF(name, fatherName, email, phone, reportingDate, accommodation);
-                
-                btnText.textContent = 'लेटर जनरेट और डाउनलोड करें';
-                loader.classList.add('hidden');
-                submitBtn.disabled = false;
-            }, 500);
-        });
+                const dateParts = reportingDateRaw.split('-');
+                // गलत डेट पर error से बचने के लिए:
+                if (dateParts.length !== 3) {
+                    alert("रिपोर्टिंग डेट सही नहीं है।");
+                    btnText.textContent = 'लेटर जनरेट और डाउनलोड करें';
+                    loader.classList.add('hidden');
+                    submitBtn.disabled = false;
+                    return;
+                }
+                const reportingDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
 
-function generatePDF(name, fatherName, email, phone, reportingDate, accommodationChoice) {
-    const doc = new jsPDF({
-        orientation: 'p',
-        unit: 'in',
-        format: 'letter'
-    });
-
-    doc.setFont('Helvetica');
-    doc.setTextColor('#000000');
-
-    const margin = 1;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const contentWidth = pageWidth - (margin * 2);
-    let y = margin;
-    const lineSpacing = 0.2;
-    const smallLineSpacing = 0.15;
-
-    // ----[LOGO HEADER]----
-    const logoDataUrl = 'url(data:image/png;base64,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';
-
-    const logoWidth = 0.9;  // Inches
-    const logoHeight = 0.9; // Inches
-
-    doc.addImage(logoDataUrl, 'PNG', margin, y, logoWidth, logoHeight);
-
-    // COMPANY INFO RIGHT SIDE (कंपनी नाम, एड्रेस, कॉन्टैक्ट)
-    const infoX = margin + logoWidth + 0.15;
-    let infoY = y + 0.03;
-
-    doc.setFontSize(10);
-    doc.setFont('Helvetica', 'bold');
-    doc.text('Garment Textile Private Limited', infoX, infoY, { align: 'left' });
-    infoY += 0.22;
-
-    doc.setFontSize(8);
-    doc.setFont('Helvetica', 'normal');
-    doc.text('Soyepur Bazar, Pandeypur, Varanasi, Uttar Pradesh - 221007', infoX, infoY, { align: 'left' });
-    infoY += 0.18;
-    doc.text('+91 79707 74361 | garmenttxtpvtltd@hotmail.com', infoX, infoY, { align: 'left' });
-
-    // HEADER LINE
-    const headerBottomY = y + logoHeight + 0.05;
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.01);
-    doc.line(margin, headerBottomY, pageWidth - margin, headerBottomY);
-
-    // बाकी PDF कंटेंट headerBottomY के बाद render करें:
-    y = headerBottomY + 0.1;
-
-    // ...आगे का generatePDF कोड जैसा है...
-}            
-            // Horizontal Line
-            doc.setDrawColor(0);
-            doc.setLineWidth(0.01); 
-            doc.line(margin, y, pageWidth - margin, y);
-            y += lineSpacing;
-
-            // Date
-            const now = new Date();
-            const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            addText(`Date: ${formattedDate}`, margin, y, { style: 'bolditalic' });
-            y += lineSpacing * 2;
-
-            // Recipient Details
-            addText('To,', margin, y);
-            y += lineSpacing;
-            addText(name, margin, y, { style: 'bold' });
-            y += smallLineSpacing;
-            addText(`S/o ${fatherName}`, margin, y);
-            y += smallLineSpacing;
-            addText(`Email: ${email}`, margin, y);
-            y += smallLineSpacing;
-            addText(`Phone: ${phone}`, margin, y);
-            y += lineSpacing * 2;
-
-            // Subject
-            addText('Subject: Confirmation of Industrial Training', margin, y, { style: 'bolditalic' });
-            y += lineSpacing * 2;
-
-            // Body
-            doc.setFont('Helvetica', 'normal');
-            addText(`Dear ${name},`, margin, y, { style: 'bold' });
-            y += lineSpacing;
-            const bodyText1 = 'We are pleased to inform you that you have been selected for the Industrial Training Program at Garment Textile Pvt. Ltd. The details of your training are mentioned below:';
-            const splitBodyText1 = doc.splitTextToSize(bodyText1, contentWidth);
-            doc.text(splitBodyText1, margin, y);
-            y += (splitBodyText1.length * smallLineSpacing) + lineSpacing;
-
-            // Training Details
-            addText('Training Details', margin, y, { style: 'bolditalic' });
-            y += lineSpacing;
-            doc.setFont('Helvetica', 'normal');
-            doc.text(`Training Location: Varanasi`, margin + 0.2, y);
-            y += smallLineSpacing;
-            doc.text(`Work Location: Varanasi`, margin + 0.2, y);
-            y += smallLineSpacing;
-            doc.text(`Reporting Date: ${reportingDate}`, margin + 0.2, y);
-            y += smallLineSpacing;
-            doc.text(`Training Duration: `, margin + 0.2, y);
-            const durationX = margin + 0.2 + doc.getStringUnitWidth('Training Duration: ') * 8 / 72;
-            addText('9 AM : 5 PM', durationX, y, { style: 'bold' });
-            y += lineSpacing * 1.5;
-
-            // --- ACCOMMODATION LOGIC (FIXED) ---
-            let accommodationText = '';
-            // **FIX 1: Replaced '₹' with 'Rs.' to ensure correct rendering.**
-            if (accommodationChoice === 'Basic') {
-                accommodationText = 'If you do not have a place to stay in Varanasi during the training period, the we can arrange a personal PG room at a Minimal Charge of Rs. 2,750.';
-            } else {
-                accommodationText = 'You have not opted for any accommodation. A Rs. 800 training facility and administrative fee will apply.';
-            }
-            const splitAccommodation = doc.splitTextToSize(accommodationText, contentWidth);
-            
-            // **FIX 2: Set font style first, then use doc.text() directly for proper line wrapping and spacing.**
-            doc.setFont('Helvetica', 'bold'); 
-            doc.text(splitAccommodation, margin, y);
-            doc.setFont('Helvetica', 'normal'); // Reset font style
-            
-            // Adjust 'y' position based on the number of lines in the accommodation text.
-            y += (splitAccommodation.length * smallLineSpacing) + lineSpacing;
-
-            // Documents Required
-            addText('Documents Required at Reporting', margin, y, { style: 'bolditalic' });
-            y += smallLineSpacing;
-            const docText = 'Please bring the following documents (originals + one self-attested copy):';
-            doc.text(docText, margin, y);
-            y += lineSpacing;
-
-            const documents = [
-                'Resume or Cover Letter',
-                '2 Passport-size Photograph (same as uploaded)',
-                'College ID Card or Marksheet(s)',
-                'Aadhar Card / Valid Government ID',
-                'Permanent Account Number (PAN) Card',
-                'Current Bank\'s Passbook'
-            ];
-            
-            documents.forEach((item, index) => {
-                let parts = item.split(/(\*.*?\*)/g).filter(Boolean);
-                let currentX = margin + 0.2;
-                doc.text(`${index + 1}. `, currentX, y);
-                currentX += doc.getStringUnitWidth(`${index + 1}. `) * 8 / 72;
-                
-                parts.forEach(part => {
-                    if (part.startsWith('*') && part.endsWith('*')) {
-                        doc.setFont('Helvetica', 'bold');
-                        doc.text(part.slice(1, -1), currentX, y);
-                        currentX += doc.getStringUnitWidth(part.slice(1, -1)) * 8 / 72;
-                    } else {
-                        doc.setFont('Helvetica', 'normal');
-                        doc.text(part, currentX, y);
-                        currentX += doc.getStringUnitWidth(part) * 8 / 72;
-                    }
-                });
-                y += smallLineSpacing;
+                setTimeout(() => {
+                    generatePDF(name, fatherName, email, phone, reportingDate, accommodation);
+                    btnText.textContent = 'लेटर जनरेट और डाउनलोड करें';
+                    loader.classList.add('hidden');
+                    submitBtn.disabled = false;
+                }, 500);
             });
-            y += lineSpacing;
 
-            // Closing Remarks
-            const closingText = 'We believe this training will be beneficial for your technical growth and professional development. Please reach out to us at the above contact for any clarifications.';
-            const splitClosingText = doc.splitTextToSize(closingText, contentWidth);
-            doc.text(splitClosingText, margin, y);
-            y += (splitClosingText.length * smallLineSpacing) + lineSpacing;
-            doc.text('We look forward to your presence and contribution.', margin, y);
-            y += lineSpacing * 2;
+            function generatePDF(name, fatherName, email, phone, reportingDate, accommodationChoice) {
+                const doc = new jsPDF({
+                    orientation: 'p',
+                    unit: 'in',
+                    format: 'letter'
+                });
 
-            // Signature
-            doc.text('Warm regards,', margin, y);
-            y += lineSpacing * 2;
-            addText('Manish Gupta', margin, y, { style: 'bold' });
-            y += smallLineSpacing;
-            addText('+91 95194 43625', margin, y, { style: 'bold' });
-            y += smallLineSpacing;
-            addText('Garment Textile Private Limited', margin, y, { style: 'bold' });
-            y += smallLineSpacing;
-            doc.text('Soyepur Bazar, Pandeypur, Varanasi, Uttar Pradesh', margin, y);
-            y += smallLineSpacing;
-            addText('221007', margin, y, { style: 'bold' });
-            y += lineSpacing;
+                doc.setFont('Helvetica');
+                doc.setTextColor('#000000');
 
-            // Final Horizontal Line
-            doc.line(margin, y, pageWidth - margin, y);
-            y += lineSpacing;
+                const margin = 1;
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const contentWidth = pageWidth - (margin * 2);
+                let y = margin;
+                const lineSpacing = 0.2;
+                const smallLineSpacing = 0.15;
 
-            // Footer Note
-            addText('Note: This is a system-generated letter and does not require a physical signature.', pageWidth / 2, y, { style: 'italic', align: 'center' });
+                // डेमो PNG (1x1 px, सफेद)
+                const logoDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/w8AAn8B9yCj2eQAAAAASUVORK5CYII=';
 
-            doc.save(`Training_Letter_${name.replace(/\s/g, '_')}.pdf`);
-        }
+                const logoWidth = 0.9;
+                const logoHeight = 0.9;
+
+                try {
+                    doc.addImage(logoDataUrl, 'PNG', margin, y, logoWidth, logoHeight);
+                } catch(e) {
+                    // Logo न हो तो भी PDF बने, error न आये
+                }
+
+                // कंपनी जानकारी
+                const infoX = margin + logoWidth + 0.15;
+                let infoY = y + 0.03;
+
+                doc.setFontSize(10);
+                doc.setFont('Helvetica', 'bold');
+                doc.text('Garment Textile Private Limited', infoX, infoY, { align: 'left' });
+                infoY += 0.22;
+                doc.setFontSize(8);
+                doc.setFont('Helvetica', 'normal');
+                doc.text('Soyepur Bazar, Pandeypur, Varanasi, Uttar Pradesh - 221007', infoX, infoY, { align: 'left' });
+                infoY += 0.18;
+                doc.text('+91 79707 74361 | garmenttxtpvtltd@hotmail.com', infoX, infoY, { align: 'left' });
+
+                // Header line
+                const headerBottomY = y + logoHeight + 0.05;
+                doc.setDrawColor(0);
+                doc.setLineWidth(0.01);
+                doc.line(margin, headerBottomY, pageWidth - margin, headerBottomY);
+
+                y = headerBottomY + 0.1;
+
+                // Helper function
+                function addText(txt, x, y, opts = {}) {
+                    let { style = 'normal', align = 'left' } = opts;
+                    doc.setFont('Helvetica', style);
+                    doc.text(txt, x, y, { align });
+                    doc.setFont('Helvetica', 'normal');
+                }
+
+                // Horizontal line
+                doc.setDrawColor(0);
+                doc.setLineWidth(0.01);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += lineSpacing;
+
+                // Date
+                const now = new Date();
+                const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                addText(`Date: ${formattedDate}`, margin, y, { style: 'bolditalic' });
+                y += lineSpacing * 2;
+
+                // Recipient Details
+                addText('To,', margin, y);
+                y += lineSpacing;
+                addText(name, margin, y, { style: 'bold' });
+                y += smallLineSpacing;
+                addText(`S/o ${fatherName}`, margin, y);
+                y += smallLineSpacing;
+                addText(`Email: ${email}`, margin, y);
+                y += smallLineSpacing;
+                addText(`Phone: ${phone}`, margin, y);
+                y += lineSpacing * 2;
+
+                // Subject
+                addText('Subject: Confirmation of Industrial Training', margin, y, { style: 'bolditalic' });
+                y += lineSpacing * 2;
+
+                // Body
+                doc.setFont('Helvetica', 'normal');
+                addText(`Dear ${name},`, margin, y, { style: 'bold' });
+                y += lineSpacing;
+                const bodyText1 = 'We are pleased to inform you that you have been selected for the Industrial Training Program at Garment Textile Pvt. Ltd. The details of your training are mentioned below.';
+                const splitBodyText1 = doc.splitTextToSize(bodyText1, contentWidth);
+                doc.text(splitBodyText1, margin, y);
+                y += (splitBodyText1.length * smallLineSpacing) + lineSpacing;
+
+                // Training Details
+                addText('Training Details', margin, y, { style: 'bolditalic' });
+                y += lineSpacing;
+                doc.setFont('Helvetica', 'normal');
+                doc.text(`Training Location: Varanasi`, margin + 0.2, y);
+                y += smallLineSpacing;
+                doc.text(`Work Location: Varanasi`, margin + 0.2, y);
+                y += smallLineSpacing;
+                doc.text(`Reporting Date: ${reportingDate}`, margin + 0.2, y);
+                y += smallLineSpacing;
+                doc.text(`Training Duration: `, margin + 0.2, y);
+                const durationX = margin + 0.2 + doc.getStringUnitWidth('Training Duration: ') * 8 / 72;
+                addText('9 AM : 5 PM', durationX, y, { style: 'bold' });
+                y += lineSpacing * 1.5;
+
+                // Accommodation
+                let accommodationText = '';
+                if (accommodationChoice === 'Basic') {
+                    accommodationText = 'If you do not have a place to stay in Varanasi during the training period, we can arrange a personal PG room at a Minimal Charge of Rs. 2,750.';
+                } else {
+                    accommodationText = 'You have not opted for any accommodation. A Rs. 800 training facility and administrative fee will apply.';
+                }
+                const splitAccommodation = doc.splitTextToSize(accommodationText, contentWidth);
+                doc.setFont('Helvetica', 'bold');
+                doc.text(splitAccommodation, margin, y);
+                doc.setFont('Helvetica', 'normal');
+                y += (splitAccommodation.length * smallLineSpacing) + lineSpacing;
+
+                // Documents Required
+                addText('Documents Required at Reporting', margin, y, { style: 'bolditalic' });
+                y += smallLineSpacing;
+                const docText = 'Please bring the following documents (originals + one self-attested copy):';
+                doc.text(docText, margin, y);
+                y += lineSpacing;
+
+                const documents = [
+                    'Resume or Cover Letter',
+                    '2 Passport-size Photograph (same as uploaded)',
+                    'College ID Card or Marksheet(s)',
+                    'Aadhar Card / Valid Government ID',
+                    'Permanent Account Number (PAN) Card',
+                    'Current Bank\'s Passbook'
+                ];
+
+                documents.forEach((item, index) => {
+                    let currentX = margin + 0.2;
+                    doc.text(`${index + 1}. ${item}`, currentX, y);
+                    y += smallLineSpacing;
+                });
+                y += lineSpacing;
+
+                // Closing Remarks
+                const closingText = 'We believe this training will be beneficial for your technical growth and professional development. Please reach out to us at the above contact for any clarifications.';
+                const splitClosingText = doc.splitTextToSize(closingText, contentWidth);
+                doc.text(splitClosingText, margin, y);
+                y += (splitClosingText.length * smallLineSpacing) + lineSpacing;
+                doc.text('We look forward to your presence and contribution.', margin, y);
+                y += lineSpacing * 2;
+
+                // Signature
+                doc.text('Warm regards,', margin, y);
+                y += lineSpacing * 2;
+                addText('Manish Gupta', margin, y, { style: 'bold' });
+                y += smallLineSpacing;
+                addText('+91 95194 43625', margin, y, { style: 'bold' });
+                y += smallLineSpacing;
+                addText('Garment Textile Private Limited', margin, y, { style: 'bold' });
+                y += smallLineSpacing;
+                doc.text('Soyepur Bazar, Pandeypur, Varanasi, Uttar Pradesh', margin, y);
+                y += smallLineSpacing;
+                addText('221007', margin, y, { style: 'bold' });
+                y += lineSpacing;
+
+                // Final Horizontal Line
+                doc.line(margin, y, pageWidth - margin, y);
+                y += lineSpacing;
+
+                // Footer Note
+                addText('Note: This is a system-generated letter and does not require a physical signature.', pageWidth / 2, y, { style: 'italic', align: 'center' });
+
+                // सबसे जरूरी: PDF डाउनलोड
+                doc.save(`Training_Letter_${name.replace(/\s/g, '_')}.pdf`);
+            }
+        };
     </script>
 </body>
 </html>
